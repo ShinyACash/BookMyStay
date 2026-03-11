@@ -1,35 +1,28 @@
-/**
- * Application entry point for the Hotel Booking System.
- * Manages static availability and object initialization.
- */
 public class HotelBookingApp {
 
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.1.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.2.0 ---\n");
 
-        // Polymorphism in action
-        Room single = new SingleRoom();
-        Room dbl = new DoubleRoom();
-        Room suite = new SuiteRoom();
+        // Initialize Centralized Inventory
+        RoomInventory inventory = new RoomInventory();
 
-        // Static availability (Limitation: these are scattered variables)
-        int singleAvailable = 5;
-        int doubleAvailable = 3;
-        int suiteAvailable = 1;
+        // Step 1: Register Room Types (Single Source of Truth)
+        inventory.addRoomType("Single Room", 5);
+        inventory.addRoomType("Double Room", 3);
+        inventory.addRoomType("Luxury Suite", 1);
 
-        System.out.println("Current Inventory & Availability:");
-        System.out.println("----------------------------------");
+        // Step 2: Display Initial State
+        inventory.displayInventory();
 
-        single.displayDetails();
-        System.out.println("Stock: " + singleAvailable + " rooms left.\n");
+        // Step 3: Simulate a booking (Controlled Update)
+        System.out.println("\nAction: Booking 1 Double Room...");
+        inventory.updateAvailability("Double Room", -1);
 
-        dbl.displayDetails();
-        System.out.println("Stock: " + doubleAvailable + " rooms left.\n");
+        // Step 4: Verify Update
+        System.out.println("Updated Availability for Double Room: " +
+                inventory.getAvailability("Double Room"));
 
-        suite.displayDetails();
-        System.out.println("Stock: " + suiteAvailable + " rooms left.\n");
-
-        System.out.println("----------------------------------");
-        System.out.println("System initialized with static state management.");
+        System.out.println("\nFinal System State:");
+        inventory.displayInventory();
     }
 }
