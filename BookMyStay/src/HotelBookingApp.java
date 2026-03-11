@@ -1,30 +1,21 @@
-import java.util.HashMap;
-import java.util.Map;
-
 public class HotelBookingApp {
 
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.3.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.4.0 ---\n");
 
-        // 1. Initialize State (Inventory)
-        RoomInventory inventory = new RoomInventory();
-        inventory.addRoomType("Single Room", 5);
-        inventory.addRoomType("Double Room", 0); // Sold out for testing
-        inventory.addRoomType("Luxury Suite", 2);
+        // Initialize the Intake Mechanism
+        BookingRequestQueue intake = new BookingRequestQueue();
 
-        // 2. Initialize Domain Objects (Room Specs)
-        Map<String, Room> roomCatalog = new HashMap<>();
-        roomCatalog.put("Single Room", new SingleRoom());
-        roomCatalog.put("Double Room", new DoubleRoom());
-        roomCatalog.put("Luxury Suite", new SuiteRoom());
+        // Guest Actions: Multiple requests arrive in sequence
+        System.out.println("Action: Intake starting for peak hours...");
 
-        // 3. Initialize Search Service
-        SearchService searchService = new SearchService();
+        intake.submitRequest(new Reservation("Akash", "Luxury Suite"));
+        intake.submitRequest(new Reservation("Shiny", "Single Room"));
+        intake.submitRequest(new Reservation("Bob", "Double Room"));
 
-        // 4. Guest Action: Initiate Search
-        System.out.println("Action: Guest is searching for available rooms...");
-        searchService.displayAvailableRooms(inventory, roomCatalog);
+        // Display the order (FIFO preservation)
+        intake.displayQueue();
 
-        System.out.println("\nSearch completed. System state remains unchanged.");
+        System.out.println("\nSystem Note: Requests are queued. No inventory has been modified yet.");
     }
 }
