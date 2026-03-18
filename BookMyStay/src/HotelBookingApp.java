@@ -1,29 +1,26 @@
 public class HotelBookingApp {
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.5.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.6.0 ---\n");
 
-        // 1. Setup Inventory
-        RoomInventory inventory = new RoomInventory();
-        inventory.addRoomType("Single Room", 2);
-        inventory.addRoomType("Luxury Suite", 1);
+        // 1. Core Allocation (From UC6)
+        String bookingId = "S101";
 
-        // 2. Setup Queue & Fill it
-        BookingRequestQueue intake = new BookingRequestQueue();
-        intake.submitRequest(new Reservation("Akash", "Luxury Suite"));
-        intake.submitRequest(new Reservation("Shiny", "Luxury Suite")); // Should fail (sold out)
-        intake.submitRequest(new Reservation("Bob", "Single Room"));
+        // 2. Initialize Add-On Manager
+        AddOnManager serviceManager = new AddOnManager();
 
-        // 3. Initialize Allocation Engine
-        AllocationService engine = new AllocationService();
+        // 3. Define Available Services
+        Service breakfast = new Service("Buffet Breakfast", 25.0);
+        Service wifi = new Service("Premium WiFi", 10.0);
+        Service spa = new Service("Spa Treatment", 120.0);
 
-        // 4. Process all requests in FIFO order
-        System.out.println("\n--- Starting Allocation Engine ---");
-        engine.processRequest(intake, inventory); // Akash gets the Suite
-        engine.processRequest(intake, inventory); // Shiny gets "Failed" (Sold out)
-        engine.processRequest(intake, inventory); // Bob gets the Single Room
+        // 4. Guest selects multiple services
+        System.out.println("Action: Guest " + bookingId + " is selecting add-ons...");
+        serviceManager.addService(bookingId, breakfast);
+        serviceManager.addService(bookingId, spa);
 
-        // 5. Final Report
-        engine.displayAllocations();
-        inventory.displayInventory();
+        // 5. Calculate and Display
+        serviceManager.displayGuestServices(bookingId);
+
+        System.out.println("\nNote: Core inventory and room pricing remain untouched.");
     }
 }
