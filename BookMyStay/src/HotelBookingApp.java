@@ -1,33 +1,29 @@
 public class HotelBookingApp {
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.10.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v2.1.0 [Durable Edition] ---\n");
 
-        // 1. Setup Thread-Safe Inventory with only 2 rooms
-        SynchronizedInventory inventory = new SynchronizedInventory();
-        inventory.addRoomType("Single Room", 2);
+        PersistenceService persistence = new PersistenceService();
 
-        // 2. Simulate 5 Guests hitting the server at once
-        Thread t1 = new Thread(new BookingTask(inventory, "Akash", "Single Room"), "Thread-1");
-        Thread t2 = new Thread(new BookingTask(inventory, "Shiny", "Single Room"), "Thread-2");
-        Thread t3 = new Thread(new BookingTask(inventory, "Bob", "Single Room"), "Thread-3");
-        Thread t4 = new Thread(new BookingTask(inventory, "Eve", "Single Room"), "Thread-4");
-        Thread t5 = new Thread(new BookingTask(inventory, "Dev", "Single Room"), "Thread-5");
+        // 1. RECOVERY: Try to load old state
+        RoomInventory inventory = persistence.loadState();
 
-        // 3. Start all threads simultaneously
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
-        t5.start();
-
-        // Wait for threads to finish
-        try {
-            t1.join(); t2.join(); t3.join(); t4.join(); t5.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (inventory == null) {
+            // No previous state? Initialize fresh
+            inventory = new RoomInventory();
+            inventory.addRoomType("Luxury Suite", 5);
+            System.out.println("Action: New inventory created.");
+        } else {
+            System.out.println("Action: System state recovered from previous session.");
         }
 
-        System.out.println("\nFinal Inventory Count: " + inventory.getAvailability("Single Room"));
-        System.out.println("System remains consistent under high concurrency.");
+        // 2. OPERATION: Show current state and make a change
+        inventory.displayInventory();
+        System.out.println("\nAction: Booking 1 Suite...");
+        inventory.updateAvailability("Luxury Suite", -1);
+        inventory.displayInventory();
+
+        // 3. PERSISTENCE: Save before exit
+        System.out.println("\nShutting down...");
+        persistence.saveState(inventory);
     }
 }
