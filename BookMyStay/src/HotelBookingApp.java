@@ -1,39 +1,33 @@
-import java.util.HashMap;
-import java.util.Map;
-
 public class HotelBookingApp {
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.8.0 [Secure Mode] ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.10.0 ---\n");
 
-        // Setup
-        RoomInventory inventory = new RoomInventory();
-        inventory.addRoomType("Single Room", 1); // Only 1 left!
+        // 1. Setup Thread-Safe Inventory with only 2 rooms
+        SynchronizedInventory inventory = new SynchronizedInventory();
+        inventory.addRoomType("Single Room", 2);
 
-        Map<String, Room> catalog = new HashMap<>();
-        catalog.put("Single Room", new SingleRoom());
+        // 2. Simulate 5 Guests hitting the server at once
+        Thread t1 = new Thread(new BookingTask(inventory, "Akash", "Single Room"), "Thread-1");
+        Thread t2 = new Thread(new BookingTask(inventory, "Shiny", "Single Room"), "Thread-2");
+        Thread t3 = new Thread(new BookingTask(inventory, "Bob", "Single Room"), "Thread-3");
+        Thread t4 = new Thread(new BookingTask(inventory, "Eve", "Single Room"), "Thread-4");
+        Thread t5 = new Thread(new BookingTask(inventory, "Dev", "Single Room"), "Thread-5");
 
-        ValidationService validator = new ValidationService();
-        BookingRequestQueue queue = new BookingRequestQueue();
-        AllocationService engine = new AllocationService();
+        // 3. Start all threads simultaneously
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
 
-        // Simulate a mix of valid and invalid requests
-        queue.submitRequest(new Reservation("Akash", "Single Room"));   // Valid
-        queue.submitRequest(new Reservation("Shiny", "Penthouse"));     // Invalid Room
-        queue.submitRequest(new Reservation("Bob", "Single Room"));     // Out of Stock
-
-        System.out.println("\n--- Processing with Error Handling ---");
-
-        while (queue.nextInLine() != null) {
-            Reservation current = queue.nextInLine(); // Peek to validate
-            try {
-                validator.validateRequest(current, inventory, catalog);
-                engine.processRequest(queue, inventory); // Only runs if validation passes
-            } catch (BookingException e) {
-                System.err.println("BLOCKING FAILED: " + e.getMessage());
-                queue.processNext(); // Remove the "bad" request from queue to move on
-            }
+        // Wait for threads to finish
+        try {
+            t1.join(); t2.join(); t3.join(); t4.join(); t5.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
-        System.out.println("\nSystem remains stable. Inventory is protected.");
+        System.out.println("\nFinal Inventory Count: " + inventory.getAvailability("Single Room"));
+        System.out.println("System remains consistent under high concurrency.");
     }
 }
