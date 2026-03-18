@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.io.Serializable;
 
 /**
  * Manages the centralized inventory of rooms using a HashMap.

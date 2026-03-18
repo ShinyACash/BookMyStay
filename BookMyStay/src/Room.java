@@ -2,6 +2,7 @@
  * Abstract class representing a generalized Hotel Room.
  * Enforces a structure for all specialized room types.
  */
+import java.io.Serializable;
 public abstract class Room {
     protected String roomType;
     protected double price;
