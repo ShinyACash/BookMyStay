@@ -1,26 +1,36 @@
 public class HotelBookingApp {
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.6.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.7.0 ---\n");
 
-        // 1. Core Allocation (From UC6)
-        String bookingId = "S101";
+        // 1. Setup Infrastructure
+        RoomInventory inventory = new RoomInventory();
+        inventory.addRoomType("Single Room", 10);
 
-        // 2. Initialize Add-On Manager
-        AddOnManager serviceManager = new AddOnManager();
+        BookingRequestQueue queue = new BookingRequestQueue();
+        AllocationService engine = new AllocationService();
 
-        // 3. Define Available Services
-        Service breakfast = new Service("Buffet Breakfast", 25.0);
-        Service wifi = new Service("Premium WiFi", 10.0);
-        Service spa = new Service("Spa Treatment", 120.0);
+        // NEW: Setup Persistence & Reporting
+        BookingHistory history = new BookingHistory();
+        ReportingService adminService = new ReportingService();
 
-        // 4. Guest selects multiple services
-        System.out.println("Action: Guest " + bookingId + " is selecting add-ons...");
-        serviceManager.addService(bookingId, breakfast);
-        serviceManager.addService(bookingId, spa);
+        // 2. Simulate Bookings
+        Reservation r1 = new Reservation("Akash", "Single Room");
+        Reservation r2 = new Reservation("Shiny", "Single Room");
 
-        // 5. Calculate and Display
-        serviceManager.displayGuestServices(bookingId);
+        queue.submitRequest(r1);
+        queue.submitRequest(r2);
 
-        System.out.println("\nNote: Core inventory and room pricing remain untouched.");
+        // 3. Process & Record (Manual trigger for this UC)
+        System.out.println("\nAction: Processing and Archiving Bookings...");
+
+        // In a real flow, engine.processRequest would return the confirmed reservation
+        engine.processRequest(queue, inventory);
+        history.recordBooking(r1); // Archiving the success
+
+        engine.processRequest(queue, inventory);
+        history.recordBooking(r2); // Archiving the success
+
+        // 4. Admin Action: Generate Report
+        adminService.generateFullReport(history);
     }
 }
