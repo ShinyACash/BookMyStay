@@ -1,36 +1,39 @@
+import java.util.HashMap;
+import java.util.Map;
+
 public class HotelBookingApp {
     public static void main(String[] args) {
-        System.out.println("--- Hotel Reservation Pro v1.7.0 ---\n");
+        System.out.println("--- Hotel Reservation Pro v1.8.0 [Secure Mode] ---\n");
 
-        // 1. Setup Infrastructure
+        // Setup
         RoomInventory inventory = new RoomInventory();
-        inventory.addRoomType("Single Room", 10);
+        inventory.addRoomType("Single Room", 1); // Only 1 left!
 
+        Map<String, Room> catalog = new HashMap<>();
+        catalog.put("Single Room", new SingleRoom());
+
+        ValidationService validator = new ValidationService();
         BookingRequestQueue queue = new BookingRequestQueue();
         AllocationService engine = new AllocationService();
 
-        // NEW: Setup Persistence & Reporting
-        BookingHistory history = new BookingHistory();
-        ReportingService adminService = new ReportingService();
+        // Simulate a mix of valid and invalid requests
+        queue.submitRequest(new Reservation("Akash", "Single Room"));   // Valid
+        queue.submitRequest(new Reservation("Shiny", "Penthouse"));     // Invalid Room
+        queue.submitRequest(new Reservation("Bob", "Single Room"));     // Out of Stock
 
-        // 2. Simulate Bookings
-        Reservation r1 = new Reservation("Akash", "Single Room");
-        Reservation r2 = new Reservation("Shiny", "Single Room");
+        System.out.println("\n--- Processing with Error Handling ---");
 
-        queue.submitRequest(r1);
-        queue.submitRequest(r2);
+        while (queue.nextInLine() != null) {
+            Reservation current = queue.nextInLine(); // Peek to validate
+            try {
+                validator.validateRequest(current, inventory, catalog);
+                engine.processRequest(queue, inventory); // Only runs if validation passes
+            } catch (BookingException e) {
+                System.err.println("BLOCKING FAILED: " + e.getMessage());
+                queue.processNext(); // Remove the "bad" request from queue to move on
+            }
+        }
 
-        // 3. Process & Record (Manual trigger for this UC)
-        System.out.println("\nAction: Processing and Archiving Bookings...");
-
-        // In a real flow, engine.processRequest would return the confirmed reservation
-        engine.processRequest(queue, inventory);
-        history.recordBooking(r1); // Archiving the success
-
-        engine.processRequest(queue, inventory);
-        history.recordBooking(r2); // Archiving the success
-
-        // 4. Admin Action: Generate Report
-        adminService.generateFullReport(history);
+        System.out.println("\nSystem remains stable. Inventory is protected.");
     }
 }
